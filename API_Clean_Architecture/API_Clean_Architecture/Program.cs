@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using API.API_Clean_Architecture.Filters;
 using API.CompositionRoot;
 using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.SwaggerUI;
 
 const string MY_CORS = "MY CORS";
 
@@ -34,7 +35,8 @@ builder.Services.AddSwaggerGen(c => {
 		{
 			new OpenApiSecurityScheme {
 				Reference = new OpenApiReference {
-					Type = ReferenceType.SecurityScheme, Id = "Bearer",
+					Type = ReferenceType.SecurityScheme,
+					Id = "Bearer",
 				},
 			},
 			Array.Empty<string>()
@@ -58,6 +60,7 @@ if (app.Environment.IsDevelopment()) {
 	app.UseSwaggerUI(c => {
 		c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
 		c.RoutePrefix = "api/docs";
+		c.DocExpansion(DocExpansion.None);
 	});
 }
 
