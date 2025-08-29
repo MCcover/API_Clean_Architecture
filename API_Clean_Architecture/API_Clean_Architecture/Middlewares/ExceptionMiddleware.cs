@@ -1,0 +1,97 @@
+﻿using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
+using System.Text.Json;
+using API.API_Clean_Architecture.Models.ProbelmDetails;
+using API.Domain.Exceptions;
+
+namespace API.API_Clean_Architecture.Middlewares;
+
+public class ExceptionMiddleware {
+	private readonly ILogger<ExceptionMiddleware> _Logger;
+	private readonly RequestDelegate _Next;
+
+	public ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger) {
+		_Next = next;
+		_Logger = logger;
+	}
+
+	public async Task InvokeAsync(HttpContext context) {
+		try {
+			await _Next(context);
+		} catch (Exception ex) {
+			await HandleExceptionAsync(context, ex);
+		}
+	}
+
+	private async Task HandleExceptionAsync(HttpContext context, Exception exception) {
+		LogException(exception);
+
+		var problem = exception switch {
+			DomainException domainEx => CreateDomainProblem(domainEx, context.Request.Path),
+
+			ArgumentNullException argNullEx => ProblemDetailsFactory.BadRequest(
+				$"Required parameter '{argNullEx.ParamName}' was not provided", context.Request.Path),
+			ArgumentException argEx => ProblemDetailsFactory.BadRequest(argEx.Message, context.Request.Path),
+			UnauthorizedAccessException => ProblemDetailsFactory.Unauthorized(instance: context.Request.Path),
+			KeyNotFoundException => ProblemDetailsFactory.NotFound(instance: context.Request.Path),
+			InvalidOperationException invalidOp => ProblemDetailsFactory.Conflict(invalidOp.Message,
+				context.Request.Path),
+
+			ValidationException =>
+				ProblemDetailsFactory.UnprocessableEntity(
+					"One or more validation errors occurred.",
+					context.Request.Path
+				),
+
+			_ => ProblemDetailsFactory.InternalServerError(
+				"An error occurred while processing your request.",
+				context.Request.Path
+			),
+		};
+
+		problem.TraceId = Activity.Current?.Id ?? context.TraceIdentifier;
+
+		if (exception is DomainException domainException) {
+			problem.AddExtension(domainException.ErrorType, domainException.Message);
+		}
+
+		context.Response.StatusCode = problem.Status ?? 500;
+		context.Response.ContentType = "application/problem+json";
+
+		var json = JsonSerializer.Serialize(problem, new JsonSerializerOptions {
+			PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+			WriteIndented = true,
+		});
+
+		await context.Response.WriteAsync(json);
+	}
+
+	private void LogException(Exception exception) {
+		switch (exception) {
+			case DomainException domainEx when (int)domainEx.StatusCode >= 500:
+				_Logger.LogError(exception, "Domain error occurred: {Message}", exception.Message);
+				break;
+			case DomainException:
+				_Logger.LogWarning(exception, "Domain validation failed: {Message}", exception.Message);
+				break;
+			case ValidationException:
+				_Logger.LogWarning(exception, "Validation failed: {Message}", exception.Message);
+				break;
+			default:
+				_Logger.LogError(exception, "Unhandled exception occurred: {Message}", exception.Message);
+				break;
+		}
+	}
+
+	private static ApiProblemDetails CreateDomainProblem(DomainException domainException, string instance) {
+		var problem = new ApiProblemDetails(
+			domainException.StatusCode.ToString(),
+			(int)domainException.StatusCode,
+			domainException.Message,
+			domainException.ErrorType,
+			instance
+		);
+
+		return problem;
+	}
+}

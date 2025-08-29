@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using API.API_Clean_Architecture.Filters;
-using API.CompositionRoot;
+using API.API_Clean_Architecture.Middlewares;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerUI;
@@ -48,14 +48,15 @@ builder.Services.AddSwaggerGen(c => {
 	});
 });
 
-builder.Services.AddControllers().AddJsonOptions(options => {
+builder.Services.AddControllers(opt => {
+	opt.Filters.Add<ModelStateValidationFilter>();
+	opt.Filters.Add<ResponseFilter>();
+}).AddJsonOptions(options => {
 	options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
 });
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
-builder.Services.AddServices(builder.Configuration.GetConnectionString("Connection"));
 
 builder.Services.ConfigureHttpJsonOptions(options => {
 	options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
@@ -91,44 +92,19 @@ builder.Services.AddRateLimiter(options => {
 });
 
 var app = builder.Build();
-app.Use(async (context, next) => {
-	// Strict Transport Security
-	context.Response.Headers.Append("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
 
-	// Content Security Policy
-	context.Response.Headers.Append("Content-Security-Policy",
-		"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none';");
+app.UseCors(MY_CORS);
 
-	// X-Frame-Options
-	context.Response.Headers.Append("X-Frame-Options", "DENY");
 
-	// X-Content-Type-Options
-	context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+app.UseMiddleware<ExceptionMiddleware>();
+app.UseMiddleware<SecurityHeadersMiddleware>();
 
-	// Referrer Policy
-	context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
-
-	// X-XSS-Protection
-	context.Response.Headers.Append("X-XSS-Protection", "1; mode=block");
-
-	// Permissions Policy
-	context.Response.Headers.Append("Permissions-Policy", "camera=(), microphone=(), location=(), payment=()");
-
-	// Remove Server header
-	context.Response.Headers.Remove("Server");
-	context.Response.Headers.Remove("X-Powered-By");
-
-	await next();
+app.UseSwagger();
+app.UseSwaggerUI(c => {
+	c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+	c.RoutePrefix = "api/docs";
+	c.DocExpansion(DocExpansion.None);
 });
-
-if (app.Environment.IsDevelopment()) {
-	app.UseSwagger();
-	app.UseSwaggerUI(c => {
-		c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-		c.RoutePrefix = "api/docs";
-		c.DocExpansion(DocExpansion.None);
-	});
-}
 
 app.UseHttpsRedirection();
 app.UseHsts();
@@ -141,7 +117,5 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
-app.UseCors(MY_CORS);
 
 app.Run();

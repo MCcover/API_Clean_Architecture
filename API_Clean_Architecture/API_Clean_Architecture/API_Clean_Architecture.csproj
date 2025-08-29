@@ -14,6 +14,7 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
+        <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7"/>
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2"/>
     </ItemGroup>
 
@@ -25,6 +26,10 @@
 
     <ItemGroup>
         <Folder Include="Controllers\"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Remove="Properties\PublishProfiles\local.pubxml"/>
     </ItemGroup>
 
 </Project>
