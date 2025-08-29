@@ -6,6 +6,8 @@ using API.API_Clean_Architecture.Filters;
 using API.API_Clean_Architecture.Middlewares;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.OpenApi.Models;
+using Serilog;
+using Serilog.Filters;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
 const string MY_CORS = "MY CORS";
@@ -91,11 +93,27 @@ builder.Services.AddRateLimiter(options => {
 	};
 });
 
+Log.Logger = new LoggerConfiguration()
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.Logger(lc => lc
+	    .WriteTo.File(
+		    path: Path.Combine(AppContext.BaseDirectory, "Logs")+"/log-.json", 
+		    rollingInterval: RollingInterval.Day,
+		    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level}] {Message}{NewLine}{Exception}",
+		    shared: true,
+		    retainedFileCountLimit: 30
+		) 
+    )
+    .CreateLogger();
+
+builder.Host.UseSerilog();
+
 var app = builder.Build();
 
 app.UseCors(MY_CORS);
 
-
+app.UseMiddleware<LoggingMiddleware>();
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseMiddleware<SecurityHeadersMiddleware>();
 

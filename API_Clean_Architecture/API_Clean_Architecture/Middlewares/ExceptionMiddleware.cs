@@ -3,16 +3,15 @@ using System.Diagnostics;
 using System.Text.Json;
 using API.API_Clean_Architecture.Models.ProbelmDetails;
 using API.Domain.Exceptions;
+using Serilog;
 
 namespace API.API_Clean_Architecture.Middlewares;
 
 public class ExceptionMiddleware {
-	private readonly ILogger<ExceptionMiddleware> _Logger;
 	private readonly RequestDelegate _Next;
 
-	public ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger) {
+	public ExceptionMiddleware(RequestDelegate next) {
 		_Next = next;
-		_Logger = logger;
 	}
 
 	public async Task InvokeAsync(HttpContext context) {
@@ -69,16 +68,16 @@ public class ExceptionMiddleware {
 	private void LogException(Exception exception) {
 		switch (exception) {
 			case DomainException domainEx when (int)domainEx.StatusCode >= 500:
-				_Logger.LogError(exception, "Domain error occurred: {Message}", exception.Message);
+				Log.Error(exception, "Domain error occurred: {Message}", exception.Message);
 				break;
 			case DomainException:
-				_Logger.LogWarning(exception, "Domain validation failed: {Message}", exception.Message);
+				Log.Warning(exception, "Domain validation failed: {Message}", exception.Message);
 				break;
 			case ValidationException:
-				_Logger.LogWarning(exception, "Validation failed: {Message}", exception.Message);
+				Log.Warning(exception, "Validation failed: {Message}", exception.Message);
 				break;
 			default:
-				_Logger.LogError(exception, "Unhandled exception occurred: {Message}", exception.Message);
+				Log.Error(exception, "Unhandled exception occurred: {Message}", exception.Message);
 				break;
 		}
 	}
