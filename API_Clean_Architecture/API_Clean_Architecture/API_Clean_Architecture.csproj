@@ -24,17 +24,12 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Application\Application.csproj"/>
-        <ProjectReference Include="..\CompositionRoot\CompositionRoot.csproj"/>
-        <ProjectReference Include="..\Utils\Utils.csproj"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <Folder Include="Auth\"/>
-    </ItemGroup>
-
-    <ItemGroup>
         <None Remove="Properties\PublishProfiles\local.pubxml"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Application\Application.csproj" />
+      <ProjectReference Include="..\Domain\Domain.csproj" />
     </ItemGroup>
 
 </Project>
