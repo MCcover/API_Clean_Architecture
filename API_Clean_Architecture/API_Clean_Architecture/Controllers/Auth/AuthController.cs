@@ -31,7 +31,7 @@ public class AuthController : ControllerBase {
 		AddCookies(result);
 	}
 
-	[HttpPost("refresh")]
+	[HttpPost("refresh")] 
 	public async Task RefreshToken() {
 		var currentToken = Request.Cookies["authToken"];
 		var refreshToken = Request.Cookies["refreshToken"];
@@ -58,7 +58,7 @@ public class AuthController : ControllerBase {
 		Response.Cookies.Delete("refreshToken");
 	}
 
-	private void AddCookies(AuthResponse result) {
+	private void AddCookies(AuthResponseDto result) {
 		var isDebug = Debugger.IsAttached;
 		var cookieOptions = new CookieOptions {
 			HttpOnly = true, // Previene acceso desde JavaScript (XSS protection)
