@@ -2,15 +2,15 @@
 using System.Text.RegularExpressions;
 using API.Utils.Attributes;
 using API.Utils.Reflection;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace API.Utils.DI;
 
 public static class ServiceCollectionExtensions {
 	private const string SEARCH_PATTERN = "^API.*";
 
-	public static void AddInjectables(this WebApplicationBuilder builder) {
+	public static void AddInjectables(this IHostApplicationBuilder builder) {
 		var assemblies = new List<Assembly>();
 		var dllFiles = AppDomain.CurrentDomain.GetProjectAssemblies();
 
@@ -58,7 +58,8 @@ public static class ServiceCollectionExtensions {
 		}
 	}
 
-	private static void RegisterService(IServiceCollection services, Type serviceType, Type implementationType, ServiceLifetime lifetime) {
+	private static void RegisterService(IServiceCollection services, Type serviceType, Type implementationType,
+		ServiceLifetime lifetime) {
 		switch (lifetime) {
 			case ServiceLifetime.Singleton:
 				services.AddSingleton(serviceType, implementationType);

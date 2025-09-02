@@ -4,7 +4,7 @@ namespace API.API_Clean_Architecture.Configurations.Builder;
 
 public static class BuilderLoggingConfig
 {
-    public static void ConfigureLogging(this WebApplicationBuilder builder)
+    public static void ConfigureLogging(this IHostApplicationBuilder builder)
     {
         Log.Logger = new LoggerConfiguration()
             .Enrich.FromLogContext()

@@ -4,7 +4,7 @@ using Microsoft.OpenApi.Models;
 namespace API.API_Clean_Architecture.Configurations.Builder;
 
 public static class BuilderSwaggerConfig {
-    public static void ConfigureSwagger(this WebApplicationBuilder builder) {
+    public static void ConfigureSwagger(this IHostApplicationBuilder builder) {
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(c =>
         {

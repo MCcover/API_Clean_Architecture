@@ -6,7 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 namespace API.API_Clean_Architecture.Configurations.Builder;
 
 public static class BuilderAuthConfig {
-    public static void ConfigureAuth(this WebApplicationBuilder builder) {
+    public static void ConfigureAuth(this IHostApplicationBuilder builder) {
         var secret = builder.Configuration["Auth:Secret"] ?? throw new Exception("Missing Secret");
         var secretBytes = Encoding.UTF8.GetBytes(secret);
         builder.Services.AddAuthentication(options => {

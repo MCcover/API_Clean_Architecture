@@ -3,7 +3,7 @@
 namespace API.API_Clean_Architecture.Configurations.Builder;
 
 public static class BuilderRateLimiterConfig {
-    public static void ConfigureRateLimiter(this WebApplicationBuilder builder) {
+    public static void ConfigureRateLimiter(this IHostApplicationBuilder builder) {
         builder.Services.AddRateLimiter(options =>
         {
             options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
