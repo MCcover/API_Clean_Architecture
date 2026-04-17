@@ -5,9 +5,11 @@ public interface ICConnection {
 
 	public Task Connect();
 
-	public Task Disconnect();
 
-	public Task BeginTransaction();
+    public Task Disconnect();
+
+
+    public Task BeginTransaction();
 
 	public Task CommitTransaction();
 

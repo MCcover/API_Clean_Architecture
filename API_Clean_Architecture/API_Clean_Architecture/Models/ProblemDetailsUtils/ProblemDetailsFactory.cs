@@ -1,4 +1,4 @@
-﻿namespace API.API_Clean_Architecture.Models.ProbelmDetails;
+﻿namespace API.API_Clean_Architecture.Models.ProblemDetailsUtils;
 
 public static class ProblemDetailsFactory {
 	private const string BaseTypeUri = "https://httpstatuses.com/";

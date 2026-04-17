@@ -12,7 +12,7 @@ public static class BuilderResponseCompressionConfig {
         });
 
         builder.Services.Configure<GzipCompressionProviderOptions>(options => {
-            options.Level = CompressionLevel.SmallestSize;
+            options.Level = CompressionLevel.Fastest;
         });
     }
 }

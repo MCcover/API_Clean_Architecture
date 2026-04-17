@@ -15,7 +15,7 @@ public class LoggingMiddleware {
 	private const string SENSITIVE_INFORMATION = "[SENSITIVE_INFORMATION]";
 	private readonly JsonSerializerOptions _JsonOptions;
 	private readonly RequestDelegate _Next;
-	private readonly string[] _SensitiveHeaders = ["Authorization", "Cookie", "Set-Cookie",];
+	private readonly string[] _SensitiveHeaders = ["Authorization", "Cookie", "Set-Cookie"];
 
 	public LoggingMiddleware(RequestDelegate next) {
 		_Next = next;
@@ -88,7 +88,6 @@ public class LoggingMiddleware {
 			Path = context.Request.Path,
 			Query = context.Request.QueryString.ToString(),
 			Headers = requestHeaders,
-			Cookies = context.Request.Cookies.ToDictionary(c => c.Key, c => c.Value),
 			Body = SanitizeJsonString(requestBody, requestModelType),
 			ContentLength = context.Request.ContentLength,
 			Protocol = context.Request.Protocol,

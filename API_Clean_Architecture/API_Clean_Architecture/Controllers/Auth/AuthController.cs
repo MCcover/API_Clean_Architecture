@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using API.API_Clean_Architecture.Controllers.Auth.Login;
 using API.API_Clean_Architecture.Controllers.Auth.Logout;
 using API.API_Clean_Architecture.Controllers.Auth.Refresh;
@@ -19,62 +18,31 @@ public class AuthController : ControllerBase {
 	}
 
 	[HttpPost("login")]
-	public async Task Login([FromBody] LoginRequest request) {
+	public async Task<AuthResponseDto> Login([FromBody] LoginRequest request) {
 		var result = await _Mediator.Send(new LoginCommand(request.Email, request.Password));
+		if (result == null) throw new UnauthorizedAccessException();
 
-		AddCookies(result);
+		return result;
 	}
 
 	[HttpPost("register")]
 	public async Task Register([FromBody] RegisterRequest request) {
-		var result = await _Mediator.Send(new RegisterCommand(request.Email, request.Password));
-		AddCookies(result);
+		var result = await _Mediator.Send(new RegisterCommand(request.Email, request.Password, request.FullName));
+		if (result == null) throw new InvalidOperationException("Email already in use.");
 	}
 
-	[HttpPost("refresh")] 
-	public async Task RefreshToken() {
-		var currentToken = Request.Cookies["authToken"];
-		var refreshToken = Request.Cookies["refreshToken"];
+	[HttpPost("refresh")]
+	public async Task<AuthResponseDto> RefreshToken([FromBody] RefreshRequest request) {
+		var result = await _Mediator.Send(new RefreshTokenCommand(request.Token, request.RefreshToken));
+		if (result == null) throw new UnauthorizedAccessException();
 
-		var result = await _Mediator.Send(new RefreshTokenCommand(currentToken, refreshToken));
-
-		DeleteCookies();
-		AddCookies(result);
+		return result;
 	}
 
 	[HttpPost("logout")]
 	[Authorize]
-	public async Task Logout() {
-		var currentToken = Request.Cookies["authToken"];
-		var refreshToken = Request.Cookies["refreshToken"];
-
-		await _Mediator.Send(new LogoutCommand(currentToken, refreshToken));
-
-		DeleteCookies();
-	}
-
-	private void DeleteCookies() {
-		Response.Cookies.Delete("authToken");
-		Response.Cookies.Delete("refreshToken");
-	}
-
-	private void AddCookies(AuthResponseDto result) {
-		var isDebug = Debugger.IsAttached;
-		var cookieOptions = new CookieOptions {
-			HttpOnly = true, // Previene acceso desde JavaScript (XSS protection)
-			Secure = !isDebug, // Solo HTTPS en producción
-			SameSite = SameSiteMode.Strict, // Protección CSRF
-			Expires = DateTimeOffset.UtcNow.AddSeconds(result.ExpiresIn),
-		};
-
-		var refreshCookieOptions = new CookieOptions {
-			HttpOnly = true,
-			Secure = true,
-			SameSite = SameSiteMode.Strict,
-			Expires = DateTimeOffset.UtcNow.AddDays(30),
-		};
-
-		Response.Cookies.Append("authToken", result.Token, cookieOptions);
-		Response.Cookies.Append("refreshToken", result.RefreshToken, refreshCookieOptions);
+	public async Task Logout([FromBody] LogoutRequest request) {
+		var token = Request.Headers.Authorization.ToString().Replace("Bearer ", "");
+		await _Mediator.Send(new LogoutCommand(token, request.RefreshToken));
 	}
 }

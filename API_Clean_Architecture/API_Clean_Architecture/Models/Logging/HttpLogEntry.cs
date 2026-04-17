@@ -9,7 +9,6 @@ public class HttpLogEntry {
     public string Path { get; set; }
     public string Query { get; set; }
     public Dictionary<string, string> Headers { get; set; }
-    public Dictionary<string, string> Cookies { get; set; }
     public string Body { get; set; }
     public long? ContentLength { get; set; }
     public string Protocol { get; set; }

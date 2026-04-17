@@ -1,6 +1,6 @@
-﻿using Microsoft.OpenApi.Models;
+﻿using System.Reflection;
+using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
-using System.Reflection;
 
 namespace API.API_Clean_Architecture.Filters {
 	public class FileUploadOperationFilter : IOperationFilter {
@@ -13,16 +13,18 @@ namespace API.API_Clean_Architecture.Filters {
 			}
 
 			operation.RequestBody = new OpenApiRequestBody {
-				Content = {
+				Content = new Dictionary<string, OpenApiMediaType> {
 					["multipart/form-data"] = new OpenApiMediaType {
 						Schema = new OpenApiSchema {
-							Type = "object",
-							Properties = {
+							Type = JsonSchemaType.Object,
+							Properties = new Dictionary<string, IOpenApiSchema> {
 								["imagen"] = new OpenApiSchema {
-									Type = "string", Format = "binary"
+									Type = JsonSchemaType.String,
+									Format = "binary"
 								},
 								["fileName"] = new OpenApiSchema {
-									Type = "string", Description = "Name"
+									Type = JsonSchemaType.String,
+									Description = "Name"
 								}
 							}
 						}

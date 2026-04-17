@@ -1,16 +1,25 @@
 ﻿using API.API_Clean_Architecture.Middlewares;
-using Microsoft.AspNetCore.Builder;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
 namespace API.API_Clean_Architecture.Configurations.Application;
 
 public static class ApplicationConfiguration {
     public static WebApplication Configure(this WebApplication app) {
+        app.UseHsts();
+        app.UseHttpsRedirection();
+
         app.UseCors(ConfigurationConstants.MY_CORS);
 
-        app.UseMiddleware<LoggingMiddleware>();
+        app.UseResponseCompression();
+        app.UseRateLimiter();
+
+        //app.UseMiddleware<SecurityHeadersMiddleware>();
+
         app.UseMiddleware<ExceptionMiddleware>();
-        app.UseMiddleware<SecurityHeadersMiddleware>();
+
+        app.UseMiddleware<DbConnectionMiddleware>();
+
+        //app.UseMiddleware<LoggingMiddleware>();
 
         app.UseSwagger();
         app.UseSwaggerUI(c => {
@@ -19,16 +28,13 @@ public static class ApplicationConfiguration {
             c.DocExpansion(DocExpansion.None);
         });
 
-        app.UseHttpsRedirection();
-        app.UseHsts();
-
-        app.UseResponseCompression();
-        app.UseRateLimiter();
-
         app.UseAuthentication();
         app.UseAuthorization();
 
+        app.MapHealthChecks("api/health");
+
         app.MapControllers();
+
         return app;
     }
 }

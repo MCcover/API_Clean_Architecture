@@ -1,5 +1,6 @@
-﻿using System.Reflection;
+﻿using API.Application.Behaviors;
 using API.Utils.Reflection;
+using System.Reflection;
 
 namespace API.API_Clean_Architecture.Configurations.Builder;
 
@@ -13,6 +14,7 @@ public static class BuilderMediatRConfig {
 
             var assemblies = assem.Select(Assembly.LoadFrom).ToArray();
             cnf.RegisterServicesFromAssemblies(assemblies);
+            cnf.AddOpenBehavior(typeof(PageValidationBehavior<,>));
         });
     }
 }

@@ -1,4 +1,4 @@
-﻿using API.Persistence.Auth.interfaces;
+﻿using API.Persistence.Auth.Interfaces;
 using MediatR;
 
 namespace API.API_Clean_Architecture.Controllers.Auth.Logout;
