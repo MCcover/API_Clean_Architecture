@@ -404,4 +404,4 @@ appsettings.json
 # End of https://www.toptal.com/developers/gitignore/api/csharp
 
 
-API_Clean_Architecture/appsettings.json
+./API_Clean_Architecture/appsettings.json
